@@ -1,21 +1,14 @@
 {
   "name": "hevy-cli",
   "version": "0.1.0",
-  "description": "CLI for syncing and querying the Hevy workout API locally",
+  "description": "CLI for the Hevy workout API",
   "main": "cli.js",
   "bin": {
     "hevy": "./cli.js"
   },
-  "scripts": {
-    "sync": "node cli.js sync"
-  },
   "keywords": ["hevy", "fitness", "workout", "cli"],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "better-sqlite3": "^12.9.0",
-    "dotenv": "^17.4.2"
-  },
   "engines": {
     "node": ">=18"
   }

@@ -1,63 +1,43 @@
 # hevy-cli
 
-A command-line tool for syncing [Hevy](https://hevy.com) workout data to a local SQLite database and querying it — useful for AI agents, scripts, or personal analytics.
+A zero-dependency CLI for the [Hevy](https://hevy.com) workout API. Returns JSON — great for AI agents, scripts, and personal analytics.
 
-## Setup
+## Install
 
 ```bash
 npm install -g hevy-cli
+```
+
+Or run directly:
+
+```bash
+npx hevy-cli <command>
+```
+
+## Auth
+
+```bash
 hevy auth <your-api-key>
 ```
 
-Get your API key from the Hevy app under **Settings → API**.
+Get your API key from the Hevy app under **Settings → API**. This saves it to `~/.hevy/config.json`. You can also set `HEVY_API_KEY` as an environment variable.
 
-This saves your key to `~/.hevy/config.json`. You can also set `HEVY_API_KEY` as an environment variable if you prefer.
-
-## Usage
-
-### Sync data from Hevy
+## Commands
 
 ```bash
-node cli.js sync                  # sync everything
-node cli.js sync --workouts       # workouts only
-node cli.js sync --routines       # routines only
-node cli.js sync --exercises      # exercise templates only
+hevy workouts [--limit N] [--page N]     # list workouts with full exercise/set detail
+hevy workout <id>                         # single workout
+hevy routines [--limit N] [--page N]     # list routines
+hevy routine <id>                         # single routine
+hevy exercises [--limit N] [--page N]    # list exercise templates
+hevy exercise <id>                        # single exercise template
 ```
 
-### Query
+All output is JSON to stdout. Errors go to stderr with a non-zero exit code.
+
+## Example
 
 ```bash
-node cli.js stats                              # summary counts
-node cli.js workouts                           # last 20 workouts
-node cli.js workouts --limit 5 --since 2026-01-01
-node cli.js workout <id>                       # full workout with sets
-node cli.js routines                           # all routines
-node cli.js routine <id>                       # full routine with sets
-node cli.js exercises --search squat           # search by name
-node cli.js exercises --muscle chest           # filter by muscle group
+# Get your 5 most recent workouts and pull out names
+hevy workouts --limit 5 | jq '[.workouts[] | {title, start_time}]'
 ```
-
-All output is JSON, making it easy to pipe into other tools or use with AI agents.
-
-### Install globally
-
-```bash
-npm install -g .
-hevy sync
-hevy stats
-```
-
-## Environment
-
-| Variable | Description |
-|----------|-------------|
-| `HEVY_API_KEY` | Required for sync |
-| `HEVY_DB_PATH` | SQLite path (default: `~/.hevy/hevy.db`) |
-
-## Database
-
-Data is stored in a local SQLite database with these tables:
-
-- `movements` — exercise templates
-- `hevy_workouts` / `hevy_workout_exercises` / `hevy_workout_sets`
-- `hevy_routines` / `hevy_routine_exercises` / `hevy_routine_sets`
