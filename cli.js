@@ -6,12 +6,21 @@ require('dotenv').config();
 const { parseArgs } = require('util');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
+
+const HEVY_DIR = path.join(os.homedir(), '.hevy');
+const CONFIG_PATH = path.join(HEVY_DIR, 'config.json');
 
 // DB path: env override → ~/.hevy/hevy.db
-const DB_PATH = process.env.HEVY_DB_PATH || path.join(os.homedir(), '.hevy', 'hevy.db');
+const DB_PATH = process.env.HEVY_DB_PATH || path.join(HEVY_DIR, 'hevy.db');
+
+// Load API key: env var → ~/.hevy/config.json
+function loadConfig() {
+  try { return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); } catch { return {}; }
+}
+const config = loadConfig();
 
 const Database = require('better-sqlite3');
-const fs = require('fs');
 
 function openDb() {
   const dir = path.dirname(DB_PATH);
@@ -97,7 +106,7 @@ function ensureSchema(db) {
 
 // ── Sync ──────────────────────────────────────────────────────────────────────
 
-const API_KEY = process.env.HEVY_API_KEY;
+const API_KEY = process.env.HEVY_API_KEY || config.api_key;
 const BASE = 'https://api.hevyapp.com/v1';
 const HEADERS = { 'api-key': API_KEY };
 
@@ -317,6 +326,7 @@ const USAGE = `
 hevy-cli — Hevy API local cache + query tool
 
 Usage:
+  hevy auth <api-key>                                  Save API key to ~/.hevy/config.json
   hevy sync [--workouts] [--routines] [--exercises]   Sync from Hevy API (default: all)
   hevy workouts [--limit N] [--since YYYY-MM-DD]       List recent workouts
   hevy workout <id>                                    Get workout with exercises & sets
@@ -326,7 +336,7 @@ Usage:
   hevy stats                                           Summary counts
 
 Environment:
-  HEVY_API_KEY   Required for sync
+  HEVY_API_KEY   API key (overrides ~/.hevy/config.json)
   HEVY_DB_PATH   SQLite path (default: ~/.hevy/hevy.db)
 `.trim();
 
@@ -335,6 +345,16 @@ async function main() {
 
   if (!cmd || cmd === '--help' || cmd === '-h') {
     console.log(USAGE);
+    return;
+  }
+
+  if (cmd === 'auth') {
+    const key = rest[0];
+    if (!key) die('Usage: hevy auth <api-key>');
+    if (!fs.existsSync(HEVY_DIR)) fs.mkdirSync(HEVY_DIR, { recursive: true });
+    const existing = loadConfig();
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify({ ...existing, api_key: key }, null, 2));
+    log(`API key saved to ${CONFIG_PATH}`);
     return;
   }
 

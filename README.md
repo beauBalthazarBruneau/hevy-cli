@@ -5,16 +5,13 @@ A command-line tool for syncing [Hevy](https://hevy.com) workout data to a local
 ## Setup
 
 ```bash
-npm install
-```
-
-Create a `.env` file:
-
-```
-HEVY_API_KEY=your_api_key_here
+npm install -g hevy-cli
+hevy auth <your-api-key>
 ```
 
 Get your API key from the Hevy app under **Settings → API**.
+
+This saves your key to `~/.hevy/config.json`. You can also set `HEVY_API_KEY` as an environment variable if you prefer.
 
 ## Usage
 
